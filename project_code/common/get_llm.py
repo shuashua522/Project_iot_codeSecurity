@@ -20,3 +20,16 @@ def get_llm():
         # max_tokens=max_tokens  # 配置max_tokens
     )
     return llm
+
+def get_llm_div(model,provider=GLOBALCONFIG.provider,base_url = GLOBALCONFIG.base_url,api_key = GLOBALCONFIG.api_key):
+    # max_tokens: int = 1000
+
+    llm = init_chat_model(
+        model=model,
+        model_provider="openai",
+        api_key=api_key,
+        base_url=base_url,
+        temperature=0,
+        # max_tokens=max_tokens  # 配置max_tokens
+    )
+    return llm
