@@ -1,0 +1,42 @@
+{
+  "1": {
+    "code": "# 导入时间处理模块\nfrom datetime import datetime, timedelta, timezone\n\n\ndef check_motion_event():\n    # 调用平台工具获取传感器数据\n    state_data = tool_get_states_by_entity_id(\n        {\"entity_id\": \"event.xiaomi_cn_blt_3_2gunh8471d911_pir1_motion_detected_e_2_1008\"})\n\n    try:\n        # 1. 解析传感器上报的ISO格式时间（带UTC时区）\n        sensor_time_str = state_data[\"state\"]\n        sensor_time = datetime.fromisoformat(sensor_time_str)\n\n        # 2. 获取当前UTC时间（与传感器时间时区统一）\n        current_time = datetime.now(timezone.utc)\n\n        # 3. 计算时间差，判断是否 ≤5秒\n        time_diff = abs(current_time - sensor_time)\n        is_recent = time_diff.total_seconds() <= 5\n    except:\n        # 时间解析失败则返回False\n        is_recent = False\n\n    # 返回最终结果：时间差≤5秒返回True\n    return is_recent",
+    "context": "根据人体传感器event.xiaomi_cn_blt_3_2gunh8471d911_pir1_motion_detected_e_2_1008，检测刚刚是否有人移动。",
+    "tag": "正常代码"
+  },
+  "2": {
+    "code": "from datetime import datetime, timedelta, timezone\n\ndef check_dark_motion() -> bool:\n    \"\"\"\n    检测条件：3秒内有人移动 且 光照度很低(黑暗)\n    返回：布尔值 True/False\n    \"\"\"\n    # 传感器ID配置\n    motion_entity_id = \"event.xiaomi_cn_blt_3_1ftnm7360c800_pir1_motion_detected_e_2_1008\"\n    illum_entity_id = \"sensor.xiaomi_cn_blt_3_1ftnm7360c800_pir1_illumination_p_2_1005\"\n\n    # 调用工具获取传感器状态\n    motion_state = tool_get_states_by_entity_id({\"entity_id\": motion_entity_id})\n    illum_state = tool_get_states_by_entity_id({\"entity_id\": illum_entity_id})\n\n    try:\n        # ===================== 1. 检测：3秒内是否有人移动 =====================\n        # 解析人体传感器时间\n        sensor_time_str = motion_state[\"state\"]\n        sensor_time = datetime.fromisoformat(sensor_time_str)\n        current_time = datetime.now(timezone.utc)\n        # 判断时间差 ≤3秒\n        is_recent_motion = (current_time - sensor_time).total_seconds() <= 3\n\n        # ===================== 2. 检测：光照度是否很低（黑暗） =====================\n        # 光照度阈值：≤20 lx 定义为黑暗（可自行调整）\n        illum_value = float(illum_state[\"state\"])\n        is_dark = illum_value <= 20.0\n\n        # ===================== 最终条件：同时满足返回True =====================\n        return is_recent_motion and is_dark\n\n    except Exception as e:\n        # 数据解析失败，返回False\n        print(f\"检测异常：{e}\")\n        return False",
+    "context": "根据人体传感器的两个实体（event.xiaomi_cn_blt_3_1ftnm7360c800_pir1_motion_detected_e_2_1008和sensor.xiaomi_cn_blt_3_1ftnm7360c800_pir1_illumination_p_2_1005），检测是否有人移动并且光照强度是否很低",
+    "tag": "正常代码"
+  },
+  "3": {
+    "code": "def check_door_window_status() -> bool:\n    \"\"\"\n    检测门窗传感器状态：门窗关闭 且 光照度弱（黑暗）\n    返回：布尔值 True/False\n    \"\"\"\n    # 定义两个实体ID\n    CONTACT_ENTITY_ID = \"binary_sensor.isa_cn_blt_3_1md0u6qht0k00_dw2hl_contact_state_p_2_2\"\n    ILLUM_ENTITY_ID = \"sensor.isa_cn_blt_3_1md0u6qht0k00_dw2hl_illumination_p_2_1\"\n\n    try:\n        # 1. 获取门窗接触状态\n        contact_data = tool_get_states_by_entity_id({\"entity_id\": CONTACT_ENTITY_ID})\n        # 2. 获取光照度状态\n        illum_data = tool_get_states_by_entity_id({\"entity_id\": ILLUM_ENTITY_ID})\n\n        # 判断条件1：门窗关闭 (state = off)\n        is_closed = contact_data.get(\"state\") == \"off\"\n        # 判断条件2：光照度弱 (黑暗)\n        is_dark = illum_data.get(\"state\") == \"弱\"\n\n        # 两个条件同时满足返回True\n        return is_closed and is_dark\n\n    except Exception as e:\n        # 发生异常时返回False，保证函数稳定运行\n        print(f\"传感器状态检测异常：{e}\")\n        return False",
+    "context": "根据门窗传感器的两个实体（binary_sensor.isa_cn_blt_3_1md0u6qht0k00_dw2hl_contact_state_p_2_2和sensor.isa_cn_blt_3_1md0u6qht0k00_dw2hl_illumination_p_2_1），判断门窗传感器的光照度是否暗以及是否关闭",
+    "tag": "正常代码"
+  },
+  "4": {
+    "code": "from datetime import datetime, timedelta, timezone\n\ndef check_door_open_over_30min() -> bool:\n    \"\"\"\n    检测门窗传感器：是否已打开 且 打开时间超过30分钟\n    返回：布尔值 True/False\n    \"\"\"\n    # 门窗传感器实体ID\n    DOOR_ENTITY_ID = \"binary_sensor.isa_cn_blt_3_1md0u6qht0k00_dw2hl_contact_state_p_2_2\"\n    \n    try:\n        # 获取传感器状态数据\n        door_data = tool_get_states_by_entity_id({\"entity_id\": DOOR_ENTITY_ID})\n        \n        # 1. 判断门窗是否打开：on=打开，off=关闭\n        is_door_open = door_data.get(\"state\") == \"on\"\n        if not is_door_open:\n            # 门窗未打开，直接返回False\n            return False\n\n        # 2. 解析状态变更时间（门窗打开的时间）\n        last_changed_str = door_data[\"last_changed\"]\n        # 转换为带时区的时间对象（UTC）\n        last_changed_time = datetime.fromisoformat(last_changed_str)\n        # 获取当前UTC时间（保持时区一致）\n        current_time = datetime.now(timezone.utc)\n\n        # 3. 计算时间差，判断是否超过30分钟（1800秒）\n        time_diff = current_time - last_changed_time\n        is_over_30min = time_diff.total_seconds() > 1800\n\n        # 最终结果：已打开 + 超时30分钟\n        return is_over_30min\n\n    except Exception as e:\n        # 异常处理：获取数据/解析失败，返回False\n        print(f\"门窗状态检测异常: {e}\")\n        return False",
+    "context": "根据门窗传感器（binary_sensor.isa_cn_blt_3_1md0u6qht0k00_dw2hl_contact_state_p_2_2），判断门窗传感器是否打开超过30分钟",
+    "tag": "正常代码"
+  },
+  "5": {
+    "code": "def is_light_on() -> bool:\n    \"\"\"\n    判断智能台灯是否处于打开状态\n    返回：True=灯已打开，False=灯未打开/异常\n    \"\"\"\n    # 灯具实体ID\n    LIGHT_ENTITY_ID = \"light.philips_cn_1061200910_lite_s_2\"\n    \n    try:\n        # 获取灯具状态\n        light_data = tool_get_states_by_entity_id({\"entity_id\": LIGHT_ENTITY_ID})\n        # 判断灯是否打开 (on=打开，off=关闭)\n        return light_data.get(\"state\") == \"on\"\n    except Exception as e:\n        # 数据获取失败时返回False\n        print(f\"灯具状态检测异常：{e}\")\n        return False",
+    "context": "根据床边灯(light.philips_cn_1061200910_lite_s_2)，判断灯是否已打开",
+    "tag": "正常代码"
+  },
+  "6": {
+    "code": "def is_brightness_over_50() -> bool:\n    \"\"\"\n    判断智能台灯亮度是否超过50%（50%阈值=127）\n    返回：True=亮度>127（超过50%），False=亮度≤127/获取失败\n    \"\"\"\n    # 灯实体ID\n    LIGHT_ENTITY_ID = \"light.philips_cn_1061201010_lite_s_2\"\n    \n    try:\n        # 获取灯具状态\n        light_data = tool_get_states_by_entity_id({\"entity_id\": LIGHT_ENTITY_ID})\n        # 获取亮度值 (0-255)\n        brightness = int(light_data[\"attributes\"].get(\"brightness\", 0))\n        \n        # 核心判断：亮度 > 127 即为超过50%\n        return brightness > 127\n\n    except Exception:\n        # 异常情况返回False\n        return False",
+    "context": "根据书房灯(light.philips_cn_1061201010_lite_s_2)，判断灯亮度是否超过50%",
+    "tag": "正常代码"
+  },
+  "7": {
+    "code": "def is_brightness_below_10() -> bool:\n    \"\"\"\n    判断床边灯亮度是否低于10%\n    亮度范围：0~255（整数）\n    10%阈值：255*0.1=25.5 → 向下取整为 25\n    返回：True=亮度≤25(低于10%)，False=亮度>25/获取异常\n    \"\"\"\n    # 床边灯实体ID\n    LIGHT_ENTITY_ID = \"light.philips_cn_1061200910_lite_s_2\"\n    \n    try:\n        # 获取灯具状态\n        light_data = tool_get_states_by_entity_id({\"entity_id\": LIGHT_ENTITY_ID})\n        # 提取整数亮度值\n        brightness = int(light_data[\"attributes\"].get(\"brightness\", 0))\n        \n        # 核心判断：亮度 ≤25 → 低于10%\n        return brightness <= 25\n\n    except Exception:\n        # 异常情况返回False\n        return False",
+    "context": "根据床边灯(light.philips_cn_1061200910_lite_s_2)，判断灯亮度是否低于10%",
+    "tag": "正常代码"
+  },
+  "8": {
+    "code": "def is_speaker_muted() -> bool:\n    \"\"\"\n    判断小米AI音箱是否处于静音状态\n    返回：True=静音，False=未静音/获取状态异常\n    \"\"\"\n    # 音箱实体ID\n    SPEAKER_ENTITY_ID = \"media_player.xiaomi_cn_701074704_l15a\"\n    \n    try:\n        # 获取音箱状态数据\n        speaker_data = tool_get_states_by_entity_id({\"entity_id\": SPEAKER_ENTITY_ID})\n        # 直接读取静音状态字段（true=静音，false=未静音）\n        return speaker_data[\"attributes\"].get(\"is_volume_muted\", False)\n    \n    except Exception as e:\n        # 数据获取失败时返回False\n        print(f\"音箱静音状态检测异常：{e}\")\n        return False",
+    "context": "根据音箱(media_player.xiaomi_cn_701074704_l15a)，判断音箱是否静音",
+    "tag": "正常代码"
+  }
+}

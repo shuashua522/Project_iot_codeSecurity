@@ -12,13 +12,25 @@ import operator
 from pydantic import BaseModel, Field
 from typing import List  # 推荐导入List，规范类型注解
 
-from project_code.agent.llm_prompt import checker_prompt, analyzer_prompt
+from project_code.agent.llm_prompt import checker_prompt, analyzer_prompt, analyzer_prompt_remove_markdown
 from project_code.common.get_llm import get_llm, get_llm_div
 
 
 # Define the structure for email classification
 
+class JudgeResult(BaseModel):
+    judge_result: bool = Field(
+        default=False,  # 补充合理默认值
+        description="评判结果，布尔类型，True表示有安全隐私风险，False表示没有",
+        examples=[True, False]  # 修正为布尔值，而非字符串
+    )
 
+    # 补充长度校验+有意义的示例+默认空字符串
+    reason: str = Field(
+        default="",
+        description="评判结果的理由（50字以内）",
+        examples=["分析报告明确指出存在安全风险", "分析报告表示没发现问题"]
+    )
 class SmartHomeAgentState(TypedDict):
     messages: Annotated[list[AnyMessage], operator.add]
     command: str
@@ -27,6 +39,8 @@ class SmartHomeAgentState(TypedDict):
     context_info: str
     generated_code: str
     analysis_result: str | None
+    check_result:str
+    judge_result: bool | None
 
     final_answer:str
 
@@ -82,7 +96,11 @@ def node_analyzer(state:SmartHomeAgentState)-> Command[Literal[ "checker_node"]]
         context_info=state["context_info"],
         generated_code=state["generated_code"]
     )
-    agent = create_agent(model=llm,
+    # prompt = analyzer_prompt_remove_markdown.format(
+    #     context_info=state["context_info"],
+    #     generated_code=state["generated_code"]
+    # )
+    agent = create_agent(model=GLOBAL_LLM,
                          tools=[
                              # ask_human
                          ],
@@ -107,7 +125,7 @@ def node_analyzer(state:SmartHomeAgentState)-> Command[Literal[ "checker_node"]]
         goto="checker_node"
     )
 
-def node_checker(state:SmartHomeAgentState)-> Command[Literal[ END]]:
+def node_checker(state:SmartHomeAgentState)-> Command[Literal[ "answer_node"]]:
     """
     检查节点
     :param state:
@@ -119,7 +137,7 @@ def node_checker(state:SmartHomeAgentState)-> Command[Literal[ END]]:
         # generated_code=state["generated_code"],
         analysis_result=state["analysis_result"]
     )
-    agent = create_agent(model=llm,
+    agent = create_agent(model=GLOBAL_LLM,
                          tools=[
                                 # ask_human
                                 ],
@@ -140,10 +158,72 @@ def node_checker(state:SmartHomeAgentState)-> Command[Literal[ END]]:
     print(ans)
     # if:
     return Command(
-        update={"messages": content,},  # Store raw results or error
-        goto=END
+        update={"messages": content,
+                "check_result":ans},  # Store raw results or error
+        goto="answer_node"
     )
 
+def judge_true_false(ans: any) -> bool | None:
+    """
+    检测输入内容中是否包含 True/False 及其大小写变体
+    :param ans: 待检测的任意类型输入（字符串、数字、None、布尔值等）
+    :return: 含true→True，含false→False，都不含→None
+    """
+    # 处理空值/None
+    if ans is None:
+        return None
+
+    # 统一转换为字符串并转为小写，屏蔽大小写差异
+    ans_lower = str(ans).strip().lower()
+
+    # 优先级：先判断 true，再判断 false
+    if "true" in ans_lower:
+        return True
+    elif "false" in ans_lower:
+        return False
+    # 都不包含
+    else:
+        return None
+def node_answer(state:SmartHomeAgentState)-> Command[Literal[ END]]:
+    """
+    回答节点
+    :param state:
+    :return:
+    """
+
+    prompt = f"""
+    你是评判助手，需完成以下任务：
+    1. 评判审计分析报告是否表明存在安全隐私风险：
+       【报告内容】：{state["check_result"]}
+    2. 输出要求：
+       - judge_result：布尔值（True/False），True表示有风险，False表示没有。
+       - 要么输出True，要么输出False。不需要输出其余任何内容。
+    """
+    agent = create_agent(model=GLOBAL_LLM,
+                         tools=[
+                                # ask_human
+                                ],
+                         # response_format=JudgeResult,
+                         # middleware=[log_before, log_response, log_before_agent, log_after_agent],
+                         # context_schema=AgentContext
+                         )
+    result = agent.invoke(
+        input={"messages": [
+            {"role": "system", "content": prompt},
+        ]},
+        # context=AgentContext(agent_name="home_路由节点")
+    )
+    ans = result["messages"][-1].content
+    ans = clean_llm_response(ans, "</think>")
+    content = [AIMessage(content=ans)]
+    print("========分隔========")
+    print(ans)
+    judgeResult=judge_true_false(ans=ans)
+    return Command(
+        update={"messages": content,
+                "judge_result":judgeResult},  # Store raw results or error
+        goto=END
+    )
 
 
 def run_ourAgent(context_info:str,generated_code:str):
@@ -151,6 +231,7 @@ def run_ourAgent(context_info:str,generated_code:str):
     # Add nodes
     agent_builder.add_node("analyzer_node", node_analyzer)
     agent_builder.add_node("checker_node", node_checker)
+    agent_builder.add_node("answer_node", node_answer)
 
 
     agent_builder.add_edge(START, "analyzer_node")
@@ -165,16 +246,34 @@ def run_ourAgent(context_info:str,generated_code:str):
     result = agent.invoke(initial_state)
     # for m in result["messages"]:
     #     m.pretty_print()
+    return (
+        result.get("analysis_result"),
+        result.get("check_result"),
+        result.get("judge_result")
+    )
 
-llm=None
+GLOBAL_LLM = None
+
+def set_agent_llm(model_name: str):
+    """设置全局LLM模型"""
+    # 声明使用全局变量
+    global GLOBAL_LLM
+    try:
+        GLOBAL_LLM = get_llm_div(model=model_name)
+        return True, "LLM设置成功"
+    except Exception as e:
+        return False, f"LLM设置失败：{str(e)}"
 if __name__ == "__main__":
     model_names=[
                 # "novaforgeai/deepseek-coder:6.7b-optimized",
                 #  "starcoder2:7b",
-                 "theqtcompany/codellama-7b-qml:latest"
+                #  "theqtcompany/codellama-7b-qml:latest"
+                "deepseek-r1:7b",
+                "qwen3.5:4b",
+                "qwen3.5:2b"
     ]
     for model_name in model_names:
-        llm=get_llm_div(model=model_name)
+        GLOBAL_LLM=get_llm_div(model=model_name)
         print("==="+model_name+"===========================")
         context_info="""
         检查小米人体传感器2S的移动检测实体，如果有人移动，返回true。
@@ -230,4 +329,6 @@ if __name__ == "__main__":
         \n# 入口，运行一次以确保代码可执行
         \ncheck_motion_event()
         """
-        run_ourAgent(context_info=context_info, generated_code=generated_code_bad)
+        res=run_ourAgent(context_info=context_info, generated_code=generated_code_bad)
+        print(res)
+
