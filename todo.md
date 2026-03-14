@@ -3,6 +3,14 @@
 - 测试用例的代码还是存在一些问题，所以人工检查后，重新修改了。
 - 生成恶意代码时，提示词去掉了"恶意"。不然生成不了，说是无法协助生成恶意代码。改了提示词之后，我看着前面生成的几个没问题，后面的就没完整看完了。
 - deepseek-r1:7b倒是跑得挺快的。但是qwen3.5:2b、qwen3.5:4b、deepseek-coder:6.7b跑不动，没反应，我断了重试也不行。我还以为是因为跑着deepseek-r1:7b所以其他模型跑不动，但我停了只跑deepseek-coder:6.7b，也不动。![image-20260313214100983](assets/image-20260313214100983.png)
+- 目前测试结果统计（deepseek-coder:6.7b）：[Project_iot_codeSecurity/project_code/test/deepseek-r1_7b/test_statistics.json at main · shuashua522/Project_iot_codeSecurity](https://github.com/shuashua522/Project_iot_codeSecurity/blob/main/project_code/test/deepseek-r1_7b/test_statistics.json)
+- 测试详情（deepseek-coder:6.7b）：[Project_iot_codeSecurity/project_code/test/deepseek-r1_7b/test_result_bad_codes.json at main · shuashua522/Project_iot_codeSecurity](https://github.com/shuashua522/Project_iot_codeSecurity/blob/main/project_code/test/deepseek-r1_7b/test_result_bad_codes.json)
+
+
+
+
+
+
 
 ## 基线
 

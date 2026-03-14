@@ -134,7 +134,7 @@ checker_prompt="""
 
 # 输入格式
 - context_info：{context_info}
-- analysis_result：{analysis_result}
+- analysis_result："{analysis_result}"
 """
 old_checker_prompt="""
 # 角色与定位
