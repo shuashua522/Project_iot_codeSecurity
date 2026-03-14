@@ -1,9 +1,8 @@
 import time
-
-from project_code.agent.agent_entry import set_agent_llm, run_ourAgent
 import json
 import os
 from typing import Dict, Any
+
 
 # ====================== 配置文件路径 ======================
 # 恶意代码测试数据集路径
@@ -71,6 +70,7 @@ def run_automated_test(model_name: str):
 
         # ---------------------- 3. 调用模型 + 异常捕获 ----------------------
         try:
+            from project_code.agent.agent_entry import set_agent_llm,run_ourAgent
             set_agent_llm(model_name)
             analysis_result, check_result, judge_result = run_ourAgent(
                 context_info=origin_context,
@@ -178,16 +178,18 @@ def run_automated_test_for_easy_agent(model_name: str):
         total_time = 0.0
 
         try:
-            # ========== 高精度统计 set_agent_llm 运行时间（单位：秒） ==========
-            start_time = time.perf_counter()  # 开始计时（最高精度计时器）
+            from project_code.agent.easy_agent_entry import set_agent_llm, run_ourAgent
             set_agent_llm(model_name)  # 执行模型初始化
-            total_time = round(time.perf_counter() - start_time, 4)  # 计算耗时，保留4位小数
-
+            # ========== 高精度统计 agent 运行时间（单位：秒） ==========
+            start_time = time.perf_counter()  # 开始计时（最高精度计时器）
             # 调用智能体检测
             judge_result, judge_reason, total_token = run_ourAgent(
                 context_info=origin_context,
                 generated_code=malicious_code
             )
+            total_time = round(time.perf_counter() - start_time, 4)  # 计算耗时，保留4位小数
+
+
             print(f"[测试成功] 模型初始化耗时: {total_time}s | 检测结果: {judge_result}")
 
         except Exception as e:
@@ -238,6 +240,6 @@ def run_automated_test_for_easy_agent(model_name: str):
 
 
 if __name__ == "__main__":
-    run_automated_test(model_name="deepseek-r1:7b")
-    # run_automated_test(model_name="qwen3.5:2b")
+    run_automated_test_for_easy_agent(model_name="deepseek-r1:7b")
+    # run_automated_test_for_easy_agent(model_name="qwen3.5:2b")
     # run_automated_test_for_easy_agent(model_name="qwen3.5:4b")

@@ -211,6 +211,7 @@ def node_answer(state: SmartHomeAgentState) -> Command[Literal[END]]:
        - reason：说明判断的理由，为什么有风险或者为什么没有。
        - 比如输出：“True，代码存在不必要的文件写入操作”
     """
+    print(prompt)
     agent = create_agent(model=GLOBAL_LLM,
                          tools=[
                              # ask_human
