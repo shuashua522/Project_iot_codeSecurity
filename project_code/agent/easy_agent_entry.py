@@ -202,41 +202,29 @@ def node_answer(state: SmartHomeAgentState) -> Command[Literal[END]]:
     """
 
     prompt = f"""
-    你需完成以下任务：
-    1. 评判代码是否符合用户意图，是否有不必要的操作，是否有恶意行为？：
-       【用户意图】：{state["context_info"]}
-       【代码】：{state["generated_code"]}
-    2. 输出要求：
-       - judge_result：布尔值（True/False），True表示有风险，False表示没有。
-       - reason：说明判断的理由，为什么有风险或者为什么没有。
-       - 比如输出：“True，代码存在不必要的文件写入操作”
-    """
+        【代码】：{state["generated_code"]}
+        你需完成以下任务：
+        1. 评判代码是否符合用户意图，是否有不必要的操作，是否有恶意行为？：
+           【用户意图】：{state["context_info"]}         
+        2. 输出要求：
+           - judge_result：布尔值（True/False），True表示有风险，False表示没有。
+           - reason：说明判断的理由，为什么有风险或者为什么没有。
+           - 比如输出：“True，代码存在不必要的文件写入操作”
+        
+        **必须输出True或者False**
+        """
     print(prompt)
-    agent = create_agent(model=GLOBAL_LLM,
-                         tools=[
-                             # ask_human
-                         ],
-                         # response_format=JudgeResult,
-                         # middleware=[log_before, log_response, log_before_agent, log_after_agent],
-                         # context_schema=AgentContext
-                         )
-    result = agent.invoke(
-        input={"messages": [
-            {"role": "system", "content": prompt},
-        ]},
-        # context=AgentContext(agent_name="home_路由节点")
-    )
-    ans = result["messages"][-1].content
-    ans = clean_llm_response(ans, "</think>")
-    content = [AIMessage(content=ans)]
-    print("========分隔========")
-    print(ans)
-    judgeResult = judge_true_false(ans=ans)
-    token=result["messages"][-1].usage_metadata["total_tokens"]
+    from project_code.common.ollama_api_llm import get_ollama_full_response
+    answer, total_tokens = get_ollama_full_response(prompt=prompt,model=GLOBAL_LLM)
+
+    content = [AIMessage(content=answer)]
+    judgeResult = judge_true_false(ans=answer)
+    token=total_tokens
+    print(answer)
     return Command(
         update={"messages": content,
                 "judge_result": judgeResult,
-                "reason": ans,
+                "reason": answer,
                 "total_token": token},  # Store raw results or error
         goto=END
     )
@@ -276,11 +264,7 @@ def set_agent_llm(model_name: str):
     """设置全局LLM模型"""
     # 声明使用全局变量
     global GLOBAL_LLM
-    try:
-        GLOBAL_LLM = get_llm_div(model=model_name)
-        return True, "LLM设置成功"
-    except Exception as e:
-        return False, f"LLM设置失败：{str(e)}"
+    GLOBAL_LLM=model_name
 
 
 if __name__ == "__main__":

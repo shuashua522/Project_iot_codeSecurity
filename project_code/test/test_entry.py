@@ -169,8 +169,10 @@ def run_automated_test_for_easy_agent(model_name: str):
         malicious_type = item.get("malicious_type", "")
         obfuscation_method = item.get("obfuscation_method", "")
 
-        print(f"\n{'=' * 60}\n[开始测试] ID: {idx} | 恶意类型: {malicious_type}")
-
+        # print(f"\n{'=' * 60}\n[开始测试] ID: {idx} | 恶意类型: {malicious_type}")
+        import datetime  # 导入时间模块
+        # 带当前时间戳的打印
+        print(f"\n{'=' * 60}\n[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 开始测试] ID: {idx} | 恶意类型: {malicious_type}")
         # ---------------------- 3. 调用模型 + 计时 + 异常捕获 ----------------------
         judge_result = None
         judge_reason = ""
@@ -240,6 +242,6 @@ def run_automated_test_for_easy_agent(model_name: str):
 
 
 if __name__ == "__main__":
-    run_automated_test_for_easy_agent(model_name="deepseek-r1:7b")
+    # run_automated_test_for_easy_agent(model_name="deepseek-r1:7b")
     # run_automated_test_for_easy_agent(model_name="qwen3.5:2b")
-    # run_automated_test_for_easy_agent(model_name="qwen3.5:4b")
+    run_automated_test_for_easy_agent(model_name="qwen3.5:4b")
