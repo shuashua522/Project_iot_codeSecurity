@@ -1,0 +1,45 @@
+---
+sourceLocationPrefix: F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql
+baselineLinesOfCode: 126
+unicodeNewlines: false
+columnKind: utf32
+primaryLanguage: python
+inProgress:
+  primaryLanguage: python
+  installedExtractors:
+    actions:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/actions
+    cpp:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/cpp
+    csharp:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/csharp
+    csv:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/csv
+    go:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/go
+    html:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/html
+    java:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/java
+    javascript:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/javascript
+    properties:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/properties
+    python:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/python
+    ruby:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/ruby
+    rust:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/rust
+    swift:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/swift
+    xml:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/xml
+    yaml:
+     - F:/PyCharm/codeQL_try/codeql-win64/codeql/yaml
+creationMetadata:
+  cliVersion: 2.24.3
+  creationTime: 2026-03-16T09:54:12.246797600Z
+overlayBaseDatabase: false
+overlayDatabase: false
+finalised: false

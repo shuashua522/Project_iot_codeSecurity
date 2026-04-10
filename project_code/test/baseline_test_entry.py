@@ -3,13 +3,13 @@ import json
 import os
 from typing import Dict, Any
 
-from project_code.test.baselines.baseline_bandit import run_bandit
+from project_code.test.baselines.baseline_bandit import run_bandit, scan_code_with_bandit, judge_bandit_report
+from project_code.test.baselines.codeql.baseline_codeql import scan_code_with_codeql, judge_codeql_report
 
 # ====================== 配置文件路径 ======================
 # 恶意代码测试数据集路径
 # DATASET_PATH = os.path.join("./dataset", "bad_codes.json")
 DATASET_PATH = os.path.join("./dataset", "cleaned_bad_codes.json")
-
 
 
 
@@ -86,12 +86,16 @@ def run_automated_test_for_baseline(baseline: str):
             # ========== 高精度统计 agent 运行时间（单位：秒） ==========
             start_time = time.perf_counter()  # 开始计时（最高精度计时器）
             # 调用智能体检测
-            report, judge_result, judge_reason = run_baseline(
+            report = run_baseline(
                 baseline_name=baseline,
                 generated_code=malicious_code
             )
             total_time = round(time.perf_counter() - start_time, 4)  # 计算耗时，保留4位小数
 
+            judge_result, judge_reason = judge_baseline_report(
+                baseline_name=baseline,
+                report=report
+            )
 
             print(f"[测试成功] 模型初始化耗时: {total_time}s | 检测结果: {judge_result}")
 
@@ -142,9 +146,23 @@ def run_automated_test_for_baseline(baseline: str):
     print("=" * 60)
 
 def run_baseline(baseline_name, generated_code):
-    report, judgeResult, reason=run_bandit(code_str=generated_code)
-    return report,judgeResult,reason
+    map={
+        "bandit":scan_code_with_bandit,
+        "codeql":scan_code_with_codeql
+    }
+    report=map[baseline_name](generated_code)
+    return report
+
+def judge_baseline_report(baseline_name, report):
+    map = {
+        "bandit": judge_bandit_report,
+        "codeql":judge_codeql_report
+    }
+    judge_result, judge_reason = map[baseline_name](report)
+    return judge_result, judge_reason
+
 if __name__ == "__main__":
     # run_automated_test_for_easy_agent(model_name="deepseek-r1:7b")
     # run_automated_test_for_easy_agent(model_name="qwen3.5:2b")
-    run_automated_test_for_baseline(baseline="bandit")
+    # run_automated_test_for_baseline(baseline="bandit")
+    run_automated_test_for_baseline(baseline="codeql")

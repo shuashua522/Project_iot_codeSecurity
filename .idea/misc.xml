@@ -4,4 +4,7 @@
     <option name="sdkName" value="iot_codeSecurity_env" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="iot_codeSecurity_env" project-jdk-type="Python SDK" />
+  <component name="PyCharmProfessionalAdvertiser">
+    <option name="shown" value="true" />
+  </component>
 </project>

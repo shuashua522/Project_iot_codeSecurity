@@ -78,7 +78,7 @@ def judge_true_false(ans: any) -> bool | None:
     # 都不包含
     else:
         return None
-def judge_report(report:str):
+def judge_bandit_report(report:str):
     prompt = f"""
         你是评判助手，需分析报告是否表明存在任何安全漏洞 / 风险问题：
         1. 该报告是 Python Bandit 安全扫描工具生成的结果；
@@ -111,7 +111,7 @@ def judge_report(report:str):
 
 def run_bandit(code_str):
     report = scan_code_with_bandit(code_str)
-    judgeResult, reason = judge_report(report=report)
+    judgeResult, reason = judge_bandit_report(report=report)
     return report,judgeResult,reason
 
 # ===================== 测试 =====================
@@ -125,6 +125,6 @@ subprocess.call("ls", shell=True)
 
     # 执行扫描
     report=scan_code_with_bandit(test_code)
-    judgeResult,ans=judge_report(report=report)
+    judgeResult,ans=judge_bandit_report(report=report)
     print(judgeResult)
     print(ans)

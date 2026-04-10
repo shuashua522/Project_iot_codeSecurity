@@ -50,3 +50,22 @@ Bandit 解析语法树（AST）时触发了无关紧要的报错
 ```
 
 关于这个我没统计token，额，需要吗？
+
+
+
+## codeql
+
+```
+# 1. 重建数据库（覆盖旧的）
+codeql database create my_python_db --language=python --overwrite
+
+# 2. 重新扫描分析
+codeql database analyze my_python_db codeql/python-queries --format=csv --output=result.csv
+```
+
+
+
+测试时，发现之前生成的清洗注释后的恶意代码存在语法问题（比如缩进都没了）。重改了代码、重新生成了数据集。
+
+
+

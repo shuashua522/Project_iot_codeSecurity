@@ -1,0 +1,12 @@
+[2026-03-16 13:35:44] This is codeql database analyze my_python_db codeql/python-queries --format=csv --output=result.csv
+[2026-03-16 13:35:44] Log file was started late.
+[2026-03-16 13:35:44] [PROGRESS] database analyze> Running queries.
+[2026-03-16 13:35:44] Running plumbing command: codeql database run-queries --evaluator-log-level=5 --warnings=show --qlconfig-file=F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql\qlconfig.yml --dynamic-join-order-mode=none --no-rerun -- F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql\my_python_db codeql/python-queries
+[2026-03-16 13:35:44] Calling plumbing command: codeql resolve ram --dataset=F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql\my_python_db\db-python --format=json
+[2026-03-16 13:35:44] [PROGRESS] resolve ram> Stringpool size measured as 2179482
+[2026-03-16 13:35:44] Plumbing command codeql resolve ram completed:
+                      [
+                        "-J-Xmx1800M",
+                        "--off-heap-ram=1563"
+                      ]
+[2026-03-16 13:35:44] Spawning plumbing command: execute queries -J-Xmx1800M --off-heap-ram=1563 --verbosity=progress --logdir=F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql\my_python_db\log --evaluator-log-level=5 --warnings=show --qlconfig-file=F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql\qlconfig.yml --dynamic-join-order-mode=none --no-rerun --output=F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql\my_python_db\results -- F:\PyCharm\Project_iot_codeSecurity\project_code\test\baselines\codeql\my_python_db\db-python codeql/python-queries
